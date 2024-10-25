@@ -6,6 +6,10 @@ enum class TokenType {
   FLOAT_LITERAL,
   STRING_LITERAL,
   LOGICAL_LITERAL,
+  INTEGER_TYPE,
+  FLOAT_TYPE,
+  STRING_TYPE,
+  LOGICAL_TYPE,
   KEYWORD,
   IDENTIFIER,
   OPERATOR,
@@ -61,11 +65,13 @@ public:
         if (keywords_.find(word) != keywords_.end()) {
           tokens.emplace_back(TokenType::KEYWORD, word, currLine, currColumn);
         } else if (word == "int") {
-          tokens.emplace_back(TokenType::INTEGER_LITERAL, word, currLine, currColumn);
+          tokens.emplace_back(TokenType::INTEGER_TYPE, word, currLine, currColumn);
         } else if (word == "float") {
-          tokens.emplace_back(TokenType::FLOAT_LITERAL, word, currLine, currColumn);
+          tokens.emplace_back(TokenType::FLOAT_TYPE, word, currLine, currColumn);
         } else if (word == "bool") {
-          tokens.emplace_back(TokenType::LOGICAL_LITERAL, word, currLine, currColumn);
+          tokens.emplace_back(TokenType::LOGICAL_TYPE, word, currLine, currColumn);
+        } else if (word == "string") {
+          tokens.emplace_back(TokenType::STRING_TYPE, word, currLine, currColumn);
         } else {
           tokens.emplace_back(TokenType::IDENTIFIER, word, currLine, currColumn);
         }
@@ -223,8 +229,16 @@ int main() {
   std::ifstream sourceFile(fileName);
 
   if (!sourceFile.is_open()) {
-    // throw std::some_error;
-    std::cerr << "Failed to read from file " << fileName << std::endl;
+    std::cerr << "Failed to open file " << fileName << std::endl;
+
+    if (sourceFile.bad()) {
+      std::cerr << "Fatal error: bad-bit is set" << std::endl;
+    }
+
+    if (sourceFile.fail()) {
+      std::cerr << "Error details: " << strerror(errno) << std::endl;
+    }
+
     return 1;
   }
 

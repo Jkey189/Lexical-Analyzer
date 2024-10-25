@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <map>
 #include <cstdint>
+#include <cstring>
 
 #include "../tokens.h"
 
