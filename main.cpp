@@ -38,6 +38,8 @@ public:
     int currLine = 1;
     int currColumn = 0;
 
+    std::pair<char, bool> withNum;
+
     while (position_ < input_.length()) {
       char currChar = input_[position_];
       ++currColumn;
@@ -47,6 +49,7 @@ public:
       }
 
       if (isSpace(currChar)) {
+        withNum.second = false;
         ++position_;
         ++currColumn;
         continue;
@@ -59,10 +62,10 @@ public:
         continue;
       }
 
-      if (isAlphaNumeric(currChar)) {
+      if (isAlpha(currChar)) {
         std::string word = getWord();
 
-        if (keywords_.find(word) != keywords_.end()) {
+        if (keywords_.find(word)) {
           tokens.emplace_back(TokenType::KEYWORD, word, currLine, currColumn);
         } else if (word == "int") {
           tokens.emplace_back(TokenType::INTEGER_TYPE, word, currLine, currColumn);
@@ -78,18 +81,33 @@ public:
       } else if (isDigit(currChar)) {
         std::string number = getNumber();
 
+        if (withNum.second) {
+          std::string cntNumber;
+          cntNumber += withNum.first;
+          cntNumber += number;
+          number = cntNumber;
+        }
+
         if (number.find('.') != std::string::npos) {
           tokens.emplace_back(TokenType::FLOAT_LITERAL, number, currLine, currColumn);
         } else {
           tokens.emplace_back(TokenType::INTEGER_LITERAL, number, currLine, currColumn);
         }
+
+        withNum.second = false;
       } else if (currChar == '+' ||
                  currChar == '-' ||
                  currChar == '*' ||
                  currChar == '/') { // + add <, >, <=, >=, ==, !=
-        tokens.emplace_back(TokenType::OPERATOR, std::string(1, currChar), currLine, currColumn);
-        ++position_;
-        ++currColumn;
+        if (currChar == '+' || currChar == '-' && !withNum.second) {
+          withNum = {currChar, true};
+          ++position_;
+          ++currColumn;
+        } else {
+          tokens.emplace_back(TokenType::OPERATOR, std::string(1, currChar), currLine, currColumn);
+          ++position_;
+          ++currColumn;
+        }
       } else if (currChar == '(' ||
                  currChar == ')' ||
                  currChar == '{' ||
@@ -112,22 +130,51 @@ public:
 private:
   std::string input_;
   size_t position_;
-  std::unordered_map<std::string, TokenType> keywords_;
+  KeywordsTree keywords_;
+  /*std::unordered_map<std::string, TokenType> OLDkeywords_;*/
 
   void initializeKeywords() {
-    keywords_["if"] = TokenType::KEYWORD;
-    keywords_["else"] = TokenType::KEYWORD;
-    keywords_["case"] = TokenType::KEYWORD;
-    keywords_["switch"] = TokenType::KEYWORD;
-    keywords_["break"] = TokenType::KEYWORD;
-    keywords_["continue"] = TokenType::KEYWORD;
-    keywords_["const"] = TokenType::KEYWORD;
-    keywords_["while"] = TokenType::KEYWORD;
-    keywords_["for"] = TokenType::KEYWORD;
-    keywords_["return"] = TokenType::KEYWORD;
-    keywords_["void"] = TokenType::KEYWORD;
-    keywords_["true"] = TokenType::KEYWORD;
-    keywords_["false"] = TokenType::KEYWORD;
+    /*OLDkeywords_["if"] = TokenType::KEYWORD;
+    OLDkeywords_["else"] = TokenType::KEYWORD;
+    OLDkeywords_["case"] = TokenType::KEYWORD;
+    OLDkeywords_["switch"] = TokenType::KEYWORD;
+    OLDkeywords_["break"] = TokenType::KEYWORD;
+    OLDkeywords_["continue"] = TokenType::KEYWORD;
+    OLDkeywords_["const"] = TokenType::KEYWORD;
+    OLDkeywords_["while"] = TokenType::KEYWORD;
+    OLDkeywords_["for"] = TokenType::KEYWORD;
+    OLDkeywords_["return"] = TokenType::KEYWORD;
+    OLDkeywords_["void"] = TokenType::KEYWORD;
+    OLDkeywords_["true"] = TokenType::KEYWORD;
+    OLDkeywords_["false"] = TokenType::KEYWORD;*/
+
+    std::string ifStr = "if";
+    std::string elseStr = "else";
+    std::string caseStr = "case";
+    std::string switchStr = "switch";
+    std::string breakStr = "break";
+    std::string continueStr = "continue";
+    std::string constStr = "const";
+    std::string whileStr = "while";
+    std::string forStr = "for";
+    std::string returnStr = "return";
+    std::string voidStr = "void";
+    std::string trueStr = "true";
+    std::string falseStr = "false";
+
+    keywords_.insert(ifStr);
+    keywords_.insert(elseStr);
+    keywords_.insert(caseStr);
+    keywords_.insert(switchStr);
+    keywords_.insert(breakStr);
+    keywords_.insert(continueStr);
+    keywords_.insert(constStr);
+    keywords_.insert(whileStr);
+    keywords_.insert(forStr);
+    keywords_.insert(returnStr);
+    keywords_.insert(voidStr);
+    keywords_.insert(trueStr);
+    keywords_.insert(falseStr );
   }
 
   static bool isSpace(const char c) {
@@ -186,6 +233,14 @@ std::string getTokenTypeName(TokenType tokenType) {
       return "STRING_LITERAL";
     case TokenType::LOGICAL_LITERAL:
       return "LOGICAL_LITERAL";
+    case TokenType::INTEGER_TYPE:
+      return "INTEGER_TYPE";
+    case TokenType::FLOAT_TYPE:
+      return "FLOAT_TYPE";
+    case TokenType::STRING_TYPE:
+      return "STRING_TYPE";
+    case TokenType::LOGICAL_TYPE:
+      return "LOGICAL_TYPE";
     case TokenType::KEYWORD:
       return "KEYWORD";
     case TokenType::IDENTIFIER:
@@ -229,7 +284,7 @@ int main() {
   std::ifstream sourceFile(fileName);
 
   if (!sourceFile.is_open()) {
-    std::cerr << "Failed to open file " << fileName << std::endl;
+    std::cerr << "Failed to open file " << "\"" << fileName << "\"" << std::endl;
 
     if (sourceFile.bad()) {
       std::cerr << "Fatal error: bad-bit is set" << std::endl;

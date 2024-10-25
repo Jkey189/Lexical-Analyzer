@@ -14,9 +14,8 @@ class KeywordsTree {
 
 
 public:
-  bool isHas(std::string&);
+  bool find(std::string&);
   void insert(std::string&);
-  std::string findK(int64_t);
 
 
 private:
@@ -24,7 +23,7 @@ private:
   Word* root = new Word();
 };
 
-bool KeywordsTree::isHas(std::string& str) {
+bool KeywordsTree::find(std::string& str) {
   Word* v = root;
 
   for (auto ch : str) {
@@ -49,34 +48,6 @@ void KeywordsTree::insert(std::string& str) {
     ++v->termCnt;
   }
   v->isTerm = true;
-}
-
-std::string KeywordsTree::findK(int64_t k) {
-  std::string str;
-  Word* v = root;
-
-  while (k > 0) {
-    if (v->isTerm) {
-      --k;
-    }
-    if (!k) { break; }
-
-    for (const auto& it : v->to) {
-      char ch = it.first;
-      Word* u = it.second;
-
-      if (k > u->termCnt) {
-        k -= u->termCnt;
-      } else {
-        str += ch;
-        v = v->to[ch];
-
-        break;
-      }
-    }
-  }
-
-  return str;
 }
 
 

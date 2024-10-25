@@ -1,14 +1,1 @@
-#include <iostream>
-
-int main() {
-    bool logicalVariable = false;
-
-    if (!logicalVariable) {
-        std::cout << "NO";
-    } else {
-        std::cout << "YES";
-    }
-    std::cout << std::endl;
-
-    return 0;
-}
+-52--52 - 52     - -  - - - - --- 52
