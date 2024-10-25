@@ -27,9 +27,28 @@ struct Token {
 };
 
 
+char* substr(const char* source, size_t start, size_t length) {
+  size_t sourceLength = strlen(source);
+
+  if (start >= sourceLength) {
+    return nullptr;
+  }
+
+  if (start + length > sourceLength) {
+    length = sourceLength - start;
+  }
+
+  char* result = new char[length + 1];
+  strncpy(result, source + start, length);
+  result[length] = '\0';
+
+  return result;
+}
+
+
 class LexicalAnalyser {
 public:
-  explicit LexicalAnalyser(std::string source) : input_(std::move(source)), position_(0) {
+  explicit LexicalAnalyser(char* source, size_t length) : input_(source), length_(length), position_(0) {
     initializeKeywords();
   }
 
@@ -40,7 +59,7 @@ public:
 
     std::pair<char, bool> withNum;
 
-    while (position_ < input_.length()) {
+    while (position_ < length_) {
       char currChar = input_[position_];
       ++currColumn;
       if (currChar == '\n') {
@@ -128,7 +147,8 @@ public:
 
 
 private:
-  std::string input_;
+  char* input_;
+  size_t length_;
   size_t position_;
   KeywordsTree keywords_;
   /*std::unordered_map<std::string, TokenType> OLDkeywords_;*/
@@ -197,20 +217,20 @@ private:
     return isAlpha(c) || isDigit(c);
   }
 
-  std::string getWord() {
+  char* getWord() {
     size_t start = position_;
-    while (position_ < input_.length() && isAlphaNumeric(input_[position_])) {
+    while (position_ < length_ && isAlphaNumeric(input_[position_])) {
       ++position_;
     }
 
-    return input_.substr(start, position_ - start);
+    return substr(input_, start, position_ - start);
   }
 
-  std::string getNumber() {
+  char* getNumber() {
     size_t start = position_;
     bool hasDecimal = false;
 
-    while (position_ < input_.length() && isDigit(input_[position_]) || input_[position_] == '.') {
+    while (position_ < length_ && isDigit(input_[position_]) || input_[position_] == '.') {
       if (input_[position_] == '.') {
         if (hasDecimal) { break; }
         hasDecimal = true;
@@ -218,7 +238,7 @@ private:
       ++position_;
     }
 
-    return input_.substr(start, position_ - start);
+    return substr(input_, start, position_ - start);
   }
 };
 
@@ -298,17 +318,15 @@ int main() {
   }
 
   sourceFile.seekg(0, std::ios::end);
-
-  size_t lengthOfFile = sourceFile.tellg();
-  std::string sourceCode( lengthOfFile, ' ');
-
-  sourceFile.seekg(0/*, std::ios::end*/);
-
-  sourceFile.read(&sourceCode[0], lengthOfFile);
+  size_t fileLength = sourceFile.tellg();
+  sourceFile.seekg(0, std::ios::end);
+  char* sourceCode = new char[fileLength];
+  sourceFile.read(sourceCode, fileLength);
+  sourceFile.close();
 
 //  std::cout << sourceCode << std::endl;
 
-  LexicalAnalyser lexer(sourceCode);
+  LexicalAnalyser lexer(sourceCode, fileLength);
 
   std::vector<Token> tokens = lexer.tokenize();
 
