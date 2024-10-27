@@ -49,7 +49,7 @@ public:
       char currChar = peek();
       State nextState = transition(state_, currChar);
 
-      if (4isEnter(currChar)) {
+      if (isEnter(currChar)) {
         get();
         continue;
       }
