@@ -280,7 +280,7 @@ int main() {
   printTokens(tokens);
   std::cout << std::endl;*/
 
-  std::string fileName = "C:/Work/Lexical-Analyzer/Lexical-Analyzer/source_file.txt";
+  std::string fileName = "../source_file.txt";
   std::ifstream sourceFile(fileName);
 
   if (!sourceFile.is_open()) {
